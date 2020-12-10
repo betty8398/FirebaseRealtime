@@ -224,8 +224,8 @@ public class MainActivity extends AppCompatActivity {
                 data.put("name",name);
                 data.put("phone",phone);
 
-                //return an AuthResult object when it succeeds:
                 //Task<Void> result = classDB.child("6").updateChildren(data);
+                //如果給child參數為空 firebase會自動產生亂數id
                 Task<Void> result = classDB.child("").push().setValue(data);
 
                 result.addOnSuccessListener(new OnSuccessListener<Void>() {

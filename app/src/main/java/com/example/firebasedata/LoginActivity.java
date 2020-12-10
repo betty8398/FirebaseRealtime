@@ -4,7 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Context;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -18,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -110,7 +113,6 @@ public class LoginActivity extends AppCompatActivity {
                         break;
                     } else {
                         email = editText_email.getText().toString();
-
                         password = editText_password.getText().toString();
                         //檢查有沒有user在線上 有的話登出 (一次只能一個人登入firebase)
                         currentUser = authControl.getCurrentUser();
@@ -135,9 +137,41 @@ public class LoginActivity extends AppCompatActivity {
                     }
                     break;
                 case R.id.button_logout:
+                    currentUser = authControl.getCurrentUser();
+                    if(currentUser!=null){
+                        textView_result.setText(currentUser.getEmail()+" is logout");
+                        editText_email.setText("");
+                        editText_password.setText("");
+                        authControl.signOut();
+                    }
 
                     break;
                 case R.id.button_register:
+                    if (editText_email.length() == 0 || editText_password.length() == 0) {
+                        Toast.makeText(context, "please input your email and password", Toast.LENGTH_SHORT).show();
+                        break;
+                    } else {
+                        email = editText_email.getText().toString();
+                        password = editText_password.getText().toString();
+
+                        authControl.createUserWithEmailAndPassword(email,password).addOnCompleteListener((Activity) context, new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if (task.isSuccessful()) {
+                                    Log.d(TAG, "Register ok");
+                                    FirebaseUser user = authControl.getCurrentUser();
+                                    DisplayUser(user);
+                                } else {
+                                    Log.d(TAG, "Register fail");
+                                    textView_result.setText("Register fail");
+                                }
+                            }
+                        });
+
+
+
+
+                    }
 
                     break;
 
@@ -153,5 +187,11 @@ public class LoginActivity extends AppCompatActivity {
         textView_result.setText("name = " + name);
         textView_result.append("email = " + email);
         textView_result.append("UID = " + UID);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        authControl.signOut();
     }
 }
